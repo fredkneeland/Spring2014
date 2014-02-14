@@ -1,5 +1,3 @@
-
-
 import java.util.*;
 
 public class Driver
@@ -38,6 +36,9 @@ public class Driver
            System.out.println("Pre-order balances: ");
            avl.balanceTree(avl.getRoot());
            avl.preOrderBalancePrint(avl.getRoot());
+           System.out.println();
+           System.out.println("In order print");
+           avl.inOrderPrint(avl.getRoot());
            System.out.println();
 
        } while(start != -1);
