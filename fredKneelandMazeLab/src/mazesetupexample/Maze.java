@@ -54,6 +54,10 @@ public class Maze extends JFrame {
     
     private long startTime;
     private long currentTime;
+
+    File output = new File("output.txt");
+    BufferedReader in;
+    boolean foundFile = false;
     
     
     /**
@@ -148,6 +152,15 @@ public class Maze extends JFrame {
         System.out.println("Press 1 to start");
         input.nextLine();
         startTime = System.currentTimeMillis();
+        try
+        {
+            in = new BufferedReader(new InputStreamReader(
+                    new FileInputStream(output)));
+            foundFile = true;
+        } catch (IOException e) {
+            foundFile = false;
+        }
+
         solve(x, y, facing);
     }
     
@@ -186,19 +199,260 @@ public class Maze extends JFrame {
             maze[y][x] = 'X';   // mark this spot as visited. This is how you can keep track of where you've been. 
 
 
-            /****************************************
-
-               Write your code here
-
-            if (facing.equals("east")) 
-            {    // if guy is facing east .......you will have four cases, east, west, south, north
-            }  
-            ******************************************/
+            //========================= Dis is my code ========================\\
 
 
-            solve(x+1, y, "south");
-            
-                
+            int newX = x;
+            int newY = y;
+            String direction = "";
+
+            // first we check to see if we are adjacent to the end
+            if (newX < MAX_WIDTH-1 && maze[newY][newX+1] == 'F')
+            {
+                newX++;
+                direction = "east";
+            }
+            else if (newX > 0 && maze[newY][newX-1] == 'F')
+            {
+                newX--;
+                direction = "east";
+            }
+            else if (newY < MAX_HEIGHT-1 && maze[newY+1][newX] == 'F')
+            {
+                newY++;
+                direction = "south";
+            }
+            else if (newY > 0 && maze[newY-1][newX] == 'F')
+            {
+                newY--;
+                direction = "north";
+            }
+            // if we are not adjacent we go
+            else
+            {
+                if (foundFile)
+                {
+                    int numbOfTries = 0;
+                    try
+                    {
+                        numbOfTries = in.read();
+                    } catch(IOException e) {}
+
+                    // in this case we will do left hand rule
+                    if (numbOfTries < 2)
+                    {
+                        if (facing.equals("south"))
+                        {
+                            // first we will look to the left which is east
+                            if (x < MAX_WIDTH && openSpace(x+1, y))
+                            {
+                                direction = "east";
+                            }
+                            // now we will look straight ahead
+                            else if (y < MAX_HEIGHT && openSpace(x, y+1))
+                            {
+                                direction = "south";
+                            }
+                            // now we will look right or west
+                            else if (x > 0 && openSpace(x-1, y))
+                            {
+                                direction = "west";
+                            }
+                            else
+                            {
+                                direction = "north";
+                            }
+                        }
+                        else if (facing.equals("east"))
+                        {
+                            // first we will look left which is north
+                            if (y > 0 && openSpace(x, y-1))
+                            {
+                                direction = "north";
+                            }
+                            // go straight if hand is on wall
+                            else if (x < MAX_WIDTH-1 && openSpace(x+1, y))
+                            {
+                                direction = "east";
+                            }
+                            // other wise go right
+                            else if (y < MAX_HEIGHT && openSpace(x, y+1))
+                            {
+                                direction = "south";
+                            }
+                            else
+                            {
+                                direction = "west";
+                            }
+                        }
+                        else if (facing.equals("north"))
+                        {
+                            // first we look left which is west
+                            if (x > 0 && openSpace(x-1, y))
+                            {
+                                direction = "west";
+                            }
+                            // if possible go straight
+                            else if (y > 0 && openSpace(x, y-1))
+                            {
+                                direction = "north";
+                            }
+                            else if (x < MAX_WIDTH-1 && openSpace(x+1, y))
+                            {
+                                direction = "east";
+                            }
+                            else
+                            {
+                                direction = "south";
+                            }
+                        }
+                        else if (facing.equals("west"))
+                        {
+                            // first we look left/south
+                            if (y < MAX_HEIGHT-1 && openSpace(x, y+1))
+                            {
+                                direction = "south";
+                            }
+                            // if possible go straight
+                            else if (x > 0 && openSpace(x-1, y))
+                            {
+                                direction = "west";
+                            }
+                            // else go right or north
+                            else if (y > 0 && openSpace(x, y-1))
+                            {
+                                direction = "north";
+                            }
+                            else
+                            {
+                                direction = "east";
+                            }
+                        }
+                    }
+                    // in this case we will find the whether right or left was shorter
+                    // and then take that path not following any dead ends
+                    else
+                    {
+
+                    }
+                }
+                else
+                {
+                    // with right hand rule we want to look west when south
+                    if (facing.equals("south"))
+                    {
+                        // first we look west
+                        if (newX > 0 && openSpace(x-1,y))
+                        {
+                            direction = "west";
+                        }
+                        // if our right hand is on the wall go straight
+                        else if (newY < MAX_HEIGHT-1 && openSpace(x,y+1))
+                        {
+                            direction = "south";
+                        }
+                        //if we are blocked in front we go east
+                        else if (newX < MAX_WIDTH && openSpace(x+1, y))
+                        {
+                            direction = "east";
+                        }
+                        // last we look north
+                        else if (newY > 0 && openSpace(x, y-1))
+                        {
+                            direction = "north";
+                        }
+                    }
+                    else if (facing.equals("east"))
+                    {
+                        // first we look to our right or South
+                        if (newY < MAX_HEIGHT-1 && openSpace(x, y+1))
+                        {
+                            direction = "south";
+                        }
+                        // if there is a wall on our right go straight if possible
+                        else if (newX < (MAX_WIDTH-1) && openSpace(x+1, y))
+                        {
+                            direction = "east";
+                        }
+                        // if we can't go right or left then go left which is North
+                        else if (newY > 0 && openSpace(x, y-1))
+                        {
+                            direction = "north";
+                        }
+                        // other wise we go back (west) if possible
+                        else
+                        {
+                            direction = "west";
+                        }
+                    }
+                    else if (facing.equals("north"))
+                    {
+                        // first we look to our right which is east
+                        if (newX < (MAX_WIDTH-1) && openSpace(x+1, y))
+                        {
+                            direction = "east";
+                        }
+                        // if our hand is on right wall go forward
+                        else if (newY > 0 && openSpace(x, y-1))
+                        {
+                            direction = "north";
+                        }
+                        // other wise we look to our left which is west
+                        else if (newX > 0 && openSpace(x-1, y))
+                        {
+                            direction = "west";
+                        }
+                        // other wise if possible back up
+                        else
+                        {
+                            direction = "south";
+                        }
+                    }
+                    else if (facing.equals("west"))
+                    {
+                        // first we look to our right which is North
+                        if (newY > 0 && openSpace(x, y-1))
+                        {
+                            direction = "north";
+                        }
+                        // if our right hand is on wall go straight
+                        else if (newX > 0 && openSpace(x-1, y))
+                        {
+                            direction = "west";
+                        }
+                        // other wise we go to our left which is south
+                        else if (newY < MAX_HEIGHT-1 && openSpace(x, y+1))
+                        {
+                            direction = "south";
+                        }
+                        else
+                        {
+                            direction = "east";
+                        }
+                    }
+                }
+            }
+
+            if (direction == "east")
+            {
+                newX++;
+            }
+            else if (direction == "south")
+            {
+                newY++;
+            }
+            else if (direction == "west")
+            {
+                newX--;
+            }
+            else
+            {
+                newY--;
+            }
+
+            System.out.print(direction);
+            System.out.println();
+            solve(newX, newY, direction);
         }
         else {
             System.out.println("Found the finish!");
@@ -208,8 +462,36 @@ public class Maze extends JFrame {
             long endTime = currentTime - startTime;
             long finalTime = endTime / 1000;
             System.out.println("Final Time = " + finalTime);
+
+            // my stuff after maze is done
+            try
+            {
+                PrintWriter writer = new PrintWriter("output.txt", "UTF-8");
+            } catch (IOException e) {
+                System.out.println();
+                System.out.println("failed to set up writer");
+            }
+
+            // if this is first round
+            if (!foundFile)
+            {
+
+            }
+            else
+            {
+
+            }
             
         }        
+    }
+
+    public boolean openSpace(int x, int y)
+    {
+        if (maze[y][x] == '#' || maze[y][x] == '%')
+        {
+            return false;
+        }
+        return true;
     }
     
 
