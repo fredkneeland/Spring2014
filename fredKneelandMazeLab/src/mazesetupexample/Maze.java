@@ -24,6 +24,7 @@ public class Maze extends JFrame {
     private static final int MAX_HEIGHT = 255;
     
     private char [][] maze = new char[MAX_HEIGHT][MAX_WIDTH];
+    private char [][] maze2 = new char[MAX_HEIGHT][MAX_WIDTH];
 
     private Random random = new Random();
     private JPanel mazePanel = new JPanel();
@@ -58,7 +59,12 @@ public class Maze extends JFrame {
     File output = new File("output.txt");
     BufferedReader in;
     boolean foundFile = false;
-    
+    int roundNumb = 0;
+    long lastTime = 0;
+    char[][] lastRoundMaze = new char[MAX_HEIGHT][MAX_WIDTH];
+    int numbOfTries = 0;
+    int fY = 0;
+    int fX = 0;
     
     /**
      * Constructor for class Maze.  Opens a text file containing the maze, then attempts to 
@@ -157,9 +163,85 @@ public class Maze extends JFrame {
             in = new BufferedReader(new InputStreamReader(
                     new FileInputStream(output)));
             foundFile = true;
+            roundNumb = in.read() - '0';
+            int total = 0;
+            int current;
+
+            in.read();
+
+            current = in.read() - '0';
+
+            while (current >= 0 && current <= 9)
+            {
+                total *= 10;
+                total += current;
+                current = in.read() - '0';
+            }
+            lastTime = total;
         } catch (IOException e) {
             foundFile = false;
+            roundNumb = 0;
         }
+
+        if (foundFile)
+        {
+            System.out.println();
+            System.out.println("last round maze");
+
+            if (roundNumb > 1)
+            {
+                try
+                {
+                    in.read();
+
+                } catch (IOException e) {}
+            }
+
+            System.out.println("maze given us");
+            for (int k = 0; k < 75; k++)
+            {
+                for (int l = 0; l < 75; l++)
+                {
+                    System.out.print(maze[k][l]);
+                }
+                System.out.println();
+            }
+            System.out.println("starting to do maze");
+            for (int i = 0; i < 75; i++)
+            {
+                for (int j = 0; j < 75; j++)
+                {
+                    try
+                    {
+                        char current = (char) in.read();
+                        if (i == 0 && j == 0)
+                        {
+                            while (current != '#' && current != '%' && current != 'X' && current != '.')
+                            {
+                                current = (char) in.read();
+                            }
+                        }
+
+                        System.out.print(current);
+
+                        lastRoundMaze[i][j] = current;
+                    } catch (IOException e) {}
+                }
+                System.out.println();
+                try {
+                    in.read();
+                } catch (IOException e) {}
+            }
+            System.out.println("First char in array");
+            System.out.println(lastRoundMaze[0][0]);
+            System.out.println(lastRoundMaze[1][0]);
+            System.out.println();
+            System.out.println("char being weird: "+lastRoundMaze[5][1]);
+            System.out.println("anther char: "+lastRoundMaze[6][2]);
+        }
+
+        numbOfTries = roundNumb;
+        maze2 = maze;
 
         solve(x, y, facing);
     }
@@ -205,26 +287,50 @@ public class Maze extends JFrame {
             int newX = x;
             int newY = y;
             String direction = "";
+            char North = 'a';
+            char South = 'a';
+            char East = 'a';
+            char West = 'a';
+            char North2 = 'a';
+            char South2 = 'a';
+            char East2 = 'a';
+            char West2 = 'a';
+            if (y > 0)
+            {
+                North = lastRoundMaze[y-1][x];
+                North2 = maze[y-1][x];
+            }
+            if (x > 0)
+            {
+                West = lastRoundMaze[y][x-1];
+                West2 = maze[y][x-1];
+            }
+            if (y < MAX_HEIGHT-1)
+            {
+                South = lastRoundMaze[y+1][x];
+                South2 = maze[y+1][x];
+            }
+            if (x < MAX_WIDTH-1)
+            {
+                East = lastRoundMaze[y][x+1];
+                East2 = maze[y][x+1];
+            }
 
             // first we check to see if we are adjacent to the end
             if (newX < MAX_WIDTH-1 && maze[newY][newX+1] == 'F')
             {
-                newX++;
                 direction = "east";
             }
             else if (newX > 0 && maze[newY][newX-1] == 'F')
             {
-                newX--;
-                direction = "east";
+                direction = "west";
             }
             else if (newY < MAX_HEIGHT-1 && maze[newY+1][newX] == 'F')
             {
-                newY++;
                 direction = "south";
             }
             else if (newY > 0 && maze[newY-1][newX] == 'F')
             {
-                newY--;
                 direction = "north";
             }
             // if we are not adjacent we go
@@ -232,12 +338,6 @@ public class Maze extends JFrame {
             {
                 if (foundFile)
                 {
-                    int numbOfTries = 0;
-                    try
-                    {
-                        numbOfTries = in.read();
-                    } catch(IOException e) {}
-
                     // in this case we will do left hand rule
                     if (numbOfTries < 2)
                     {
@@ -334,8 +434,82 @@ public class Maze extends JFrame {
                     else
                     {
 
+                        //direction = facing;
+                        System.out.println("We are in the third round");
+                        System.out.println("currentLoc: "+lastRoundMaze[y][x]);
+                        System.out.println("current Loc2: "+maze2[y][x]);
+                        System.out.println("East: "+East + ", West: "+West+", South: "+South+", North: "+North);
+                        System.out.println("East2: "+East2+ ", West2: "+West2+", South2: "+South2+", North2: "+North2);
+                        System.out.println("x: "+x+", y:"+y);
+
+
+                        lastRoundMaze[y][x] = '.';
+
+                        int numbOfXs = 0;
+                        // first we count the number of x's around us
+
+                        if (East == 'X')
+                        {
+                            numbOfXs++;
+                            direction = "east";
+                        }
+                        if (North == 'X')
+                        {
+                            numbOfXs++;
+                            direction = "north";
+                        }
+                        if (South == 'X')
+                        {
+                            numbOfXs++;
+                            direction = "south";
+                        }
+                        if (West == 'X')
+                        {
+                            numbOfXs++;
+                            direction = "west";
+                        }
+
+                        // then we go on our merry way
+                        if (numbOfXs < 2) {}
+                        else
+                        {
+
+                            // we check one way and then the other to see if we ever get back to our current loc
+                            checkDeadEnd(x, y);
+
+                            if (x > 0 && lastRoundMaze[y][x-1] == 'X')
+                            {
+                                numbOfXs++;
+                                direction = "west";
+                            }
+                            if (lastRoundMaze[y][x+1] == 'X')
+                            {
+                                numbOfXs++;
+                                direction = "east";
+                            }
+                            if (y > 0 && lastRoundMaze[y-1][x] == 'X')
+                            {
+                                numbOfXs++;
+                                direction = "north";
+                            }
+                            if (lastRoundMaze[y+1][x] == 'X')
+                            {
+                                numbOfXs++;
+                                direction = "south";
+                            }
+                        }
+
+
+                        if (numbOfXs == 0)
+                        {
+                            numbOfTries = 1;
+                        }
+                        System.out.println("Direction: " + direction);
+                        System.out.println("Hello World");
+
                     }
                 }
+                // if there is no file then we will do right hand rule
                 else
                 {
                     // with right hand rule we want to look west when south
@@ -445,10 +619,15 @@ public class Maze extends JFrame {
             {
                 newX--;
             }
-            else
+            else if (direction == "north")
             {
                 newY--;
             }
+            else
+            {
+                direction = facing;
+            }
+
 
             System.out.print(direction);
             System.out.println();
@@ -463,26 +642,135 @@ public class Maze extends JFrame {
             long finalTime = endTime / 1000;
             System.out.println("Final Time = " + finalTime);
 
-            // my stuff after maze is done
-            try
+            printToFile(finalTime);
+        }        
+    }
+
+    public boolean checkDeadEnd(int x, int y)
+    {
+        // if we made it to the finish then we are done
+        if (maze[y][x] == 'F')
+        {
+            return false;
+        }
+        else
+        {
+            // we go in all directions with an X after changing our current loc to Y
+            lastRoundMaze[y][x] = 'Y';
+
+            boolean first = true;
+            boolean second = true;
+            boolean third = true;
+            boolean fourth = true;
+
+            if (lastRoundMaze[y][x+1] == 'X')
             {
-                PrintWriter writer = new PrintWriter("output.txt", "UTF-8");
-            } catch (IOException e) {
-                System.out.println();
-                System.out.println("failed to set up writer");
+                first = checkDeadEnd(x+1, y);
+                if (!first)
+                {
+                    lastRoundMaze[y][x+1] = 'X';
+                }
+            }
+            if (lastRoundMaze[y][x-1] == 'X')
+            {
+                second = checkDeadEnd(x-1, y);
+                if (!second)
+                {
+                    lastRoundMaze[y][x-1] = 'X';
+                }
+            }
+            if (lastRoundMaze[y+1][x] == 'X')
+            {
+                third = checkDeadEnd(x, y+1);
+                if (!third)
+                {
+                    lastRoundMaze[y+1][x] = 'X';
+                }
+            }
+            if (lastRoundMaze[y-1][x] == 'X')
+            {
+                fourth = checkDeadEnd(x, y-1);
+                if (!fourth)
+                {
+                    lastRoundMaze[y-1][x] = 'X';
+                }
             }
 
-            // if this is first round
-            if (!foundFile)
-            {
+            return first && second && third && fourth;
+        }
+    }
 
+    public void printToFile(long finalTime)
+    {
+        PrintWriter writer = null;
+        // my stuff after maze is done
+        try
+        {
+            writer = new PrintWriter("output.txt", "UTF-8");
+        } catch (IOException e) {
+            System.out.println();
+            System.out.println("failed to set up writer");
+        }
+
+        // if this is first round
+        if (!foundFile)
+        {
+            System.out.println("file not found");
+            writer.println("1");
+            writer.println(""+finalTime);
+            // here we will print out the map
+            for (int i = 0; i < 75; i++)
+            {
+                for (int j = 0; j < 75; j++)
+                {
+                    writer.print(maze[i][j]);
+                }
+                writer.println();
             }
+        }
+        else
+        {
+            System.out.println("file was found");
+            writer.println(""+(roundNumb+1));
+            System.out.println("finalTime: "+finalTime+", lastTime: "+lastTime);
+
+            // if we are faster then we write down our time and wat we know
+            if (finalTime < lastTime)
+            {
+                System.out.println("our way was faster");
+                writer.print("" + finalTime);
+                writer.println(",");
+                // here we will print out the map
+                for (int i = 0; i < 75; i++)
+                {
+                    for (int j = 0; j < 75; j++)
+                    {
+                        writer.print(maze[i][j]);
+                    }
+                    writer.println();
+                }
+            }
+            // if the last way was faster then we copy over the data we picked up last time
             else
             {
+                System.out.println("last way was faster");
+                writer.println(""+lastTime);
+                writer.print(",");
+                // here we will print out the map
+                for (int i = 0; i < 75; i++)
+                {
+                    for (int j = 0; j < 75; j++)
+                    {
+                        writer.print(lastRoundMaze[i][j]);
+                    }
+                    writer.println();
+                }
 
+                writer.println("trying to print last time");
             }
-            
-        }        
+        }
+
+        writer.close();
     }
 
     public boolean openSpace(int x, int y)
@@ -493,8 +781,6 @@ public class Maze extends JFrame {
         }
         return true;
     }
-    
-
     
     /**
      * Opens a text file containing a maze and stores the data in the 2D char array maze[][].
@@ -635,14 +921,19 @@ public class Maze extends JFrame {
          return mi;
     }
 
-     public void closingMethod()
-     {
-         
-            long endTime = currentTime - startTime;
-            long finalTime = endTime / 100;
-            System.out.println("Final Time = " + ((double)finalTime/(double)10));  
-            System.exit(0);
-      }
+    public void closingMethod()
+    {
+
+        long endTime = currentTime - startTime;
+        long finalTime = endTime / 100;
+        System.out.println("Final Time = " + ((double)finalTime/(double)10));
+
+        // here we do our file saving stuff
+        printToFile(finalTime);
+
+
+        System.exit(0);
+    }
     /**
      * Handles the Timer, updates the boolean timerFired every time the Timer ticks.
      * Used to slow the animation down.
