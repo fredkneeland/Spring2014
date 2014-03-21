@@ -158,6 +158,9 @@ public class Maze extends JFrame {
         System.out.println("Press 1 to start");
         input.nextLine();
         startTime = System.currentTimeMillis();
+
+        // here we will attempt to read in a file and then if it exists we will load a bunch of data like
+        // where we went and what we found out on our last journey
         try
         {
             in = new BufferedReader(new InputStreamReader(
@@ -336,9 +339,10 @@ public class Maze extends JFrame {
             // if we are not adjacent we go
             else
             {
+                // if we didn't find the file then we go straight to right hand rule
                 if (foundFile)
                 {
-                    // in this case we will do left hand rule
+                    // if we have only gone once before then we will do left hand rule
                     if (numbOfTries < 2)
                     {
                         if (facing.equals("south"))
@@ -429,12 +433,11 @@ public class Maze extends JFrame {
                             }
                         }
                     }
-                    // in this case we will find the whether right or left was shorter
+                    // if we have done both left and right hand rule the we will find whether right or left was shorter
                     // and then take that path not following any dead ends
                     else
                     {
-
-                        //direction = facing;
+                        //Here we print out tons of garbage to help us debug
                         System.out.println("We are in the third round");
                         System.out.println("currentLoc: "+lastRoundMaze[y][x]);
                         System.out.println("current Loc2: "+maze2[y][x]);
@@ -607,6 +610,7 @@ public class Maze extends JFrame {
                 }
             }
 
+            // based on what direction we choose we can adjust where we will move to
             if (direction == "east")
             {
                 newX++;
@@ -642,20 +646,22 @@ public class Maze extends JFrame {
             long finalTime = endTime / 1000;
             System.out.println("Final Time = " + finalTime);
 
+            // here we call our print method
             printToFile(finalTime);
         }        
     }
 
+    // This method recursively checks to see if a route that we took before is a dead end
     public boolean checkDeadEnd(int x, int y)
     {
-        // if we made it to the finish then we are done
+        // if we made it to the finish then we are done and this isn't a dead end
         if (maze[y][x] == 'F')
         {
             return false;
         }
         else
         {
-            // we go in all directions with an X after changing our current loc to Y
+            // we go in all directions with an X after changing our current loc to Y so we don't come back
             lastRoundMaze[y][x] = 'Y';
 
             boolean first = true;
@@ -666,6 +672,7 @@ public class Maze extends JFrame {
             if (lastRoundMaze[y][x+1] == 'X')
             {
                 first = checkDeadEnd(x+1, y);
+                // here we recursively change it back to an x if this path leads to the finish so we will follow it
                 if (!first)
                 {
                     lastRoundMaze[y][x+1] = 'X';
@@ -700,6 +707,7 @@ public class Maze extends JFrame {
         }
     }
 
+    // In this method we print stuff to a file to make our next trip faster
     public void printToFile(long finalTime)
     {
         PrintWriter writer = null;
